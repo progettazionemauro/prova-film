@@ -1,40 +1,435 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prova_film</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Export</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 980px; margin: 24px auto; padding: 0 16px; }
-    .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 16px 0; background: #fff; }
-    label { display: block; margin: 10px 0 6px; font-weight: bold; }
-    input, select { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #bbb; border-radius: 8px; }
-    button { margin-top: 14px; padding: 10px 14px; border: 0; border-radius: 8px; background: #111; color: #fff; font-weight: bold; cursor: pointer; }
-    pre { background: #111; color: #d8ffd8; padding: 14px; border-radius: 10px; overflow: auto; white-space: pre-wrap; }
+    body { font-family: Arial, sans-serif; max-width: 1100px; margin: 28px auto; padding: 0 16px; }
+    h1 { margin: 0 0 6px; }
+    .muted { color:#666; }
+    .card { border:1px solid #e5e5e5; border-radius:10px; padding:14px; background:#fafafa; margin:12px 0; }
+    label { display:block; margin:10px 0 6px; font-weight:700; }
+    input, select { width:100%; padding:9px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; background:#fff; }
+    button { padding:9px 12px; border:0; border-radius:8px; background:#111; color:#fff; cursor:pointer; font-weight:800; }
+    button.secondary { background:#666; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+    .ok { color:#0a6; font-weight:800; }
+    .err { color:#b00; font-weight:800; }
+    iframe { width:100%; height:560px; border:1px solid #ddd; border-radius:10px; background:#fff; }
+    small { display:block; margin-top:8px; color:#666; }
+    pre { background:#0b0b0b; color:#d6ffd6; border-radius:10px; padding:12px; overflow:auto; }
   </style>
 </head>
 <body>
 
-  <h1>Prova_film</h1>
+  <h1>Export <span class="muted">— generated</span></h1>
+  <p class="muted">
+    Backend: Google Apps Script (JSONP) → tab <b>Export</b>.
+    <br>Read e write passano dal proxy sicuro del Builder.
+  </p>
 
-  <div class="card">
-    <h2>Generated frontend form</h2>
-      <label for="Data Produzione">Data Produzione</label>
-      <input id="Data Produzione" type="text" placeholder="14/01/1965" />
-    <button type="button">Submit</button>
+    <div id="debugPanel" class="card" style="display:none;">
+    <h3 style="margin:0 0 10px;">Developer tools</h3>
+
+    <p class="muted">
+      Technical checks for backend connection and schema validation.
+    </p>
+
+    <div class="actions">
+      <button id="pingBtn" type="button">meta</button>
+      <button id="schemaBtn" type="button" class="secondary">schema</button>
+      <span id="cfgStatus" class="muted"></span>
+    </div>
+
+    <small>Slug app: <code>export</code></small>
   </div>
 
   <div class="card">
-    <h2>Project info</h2>
-    <pre>{
-  &quot;backendName&quot;: &quot;prova-film-backend&quot;,
-  &quot;entityName&quot;: &quot;ProvaFilmItem&quot;,
-  &quot;sheetName&quot;: &quot;ProvaFilmData&quot;,
-  &quot;visibleInForm&quot;: [
-    &quot;Data Produzione&quot;
-  ]
-}</pre>
+    <h3 style="margin:0 0 10px;">Insert (Item)</h3>
+
+
+    <label for="data">data <span class="muted">(optional)</span></label>
+    <input id="data" placeholder="dd/mm/yyyy" />
+
+
+    <label for="conto">conto <span class="muted">(optional)</span></label>
+    <input id="conto" placeholder="conto" />
+
+
+    <label for="descrizione">descrizione <span class="muted">(optional)</span></label>
+    <input id="descrizione" placeholder="descrizione" />
+
+
+    <label for="clientefornitore">cliente/fornitore <span class="muted">(optional)</span></label>
+    <input id="clientefornitore" placeholder="cliente/fornitore" />
+
+
+    <label for="entrate">entrate <span class="muted">(optional)</span></label>
+    <input id="entrate" placeholder="entrate" />
+
+
+    <label for="uscite">uscite <span class="muted">(optional)</span></label>
+    <input id="uscite" type="number" min="0" placeholder="uscite" />
+
+
+    <label for="saldo_progvo">saldo prog.vo <span class="muted">(optional)</span></label>
+    <input id="saldo_progvo" placeholder="saldo prog.vo" />
+
+    <div class="actions">
+      <button id="insertBtn" type="button">Insert</button>
+      <span id="insertStatus" class="muted"></span>
+    </div>
   </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 10px;">Find, update or delete an existing record</h3>
+      <p class="muted">
+    Enter a record id, load the record into the form, then update or delete it.
+      </p>
+    <div class="row">
+      <div>
+        <label for="crud_id">id</label>
+        <input id="crud_id" type="number" min="1" step="1" placeholder="1" />
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <div class="actions" style="margin-top:0;">
+          <button id="getBtn" type="button" class="secondary">Load record</button>
+          <button id="updateBtn" type="button">update</button>
+          <button id="deleteBtn" type="button" class="secondary">delete</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <span id="crudStatus" class="muted"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 10px;">Data preview</h3>
+<p class="muted">
+  View the current spreadsheet records. To change labels, visible columns or colors, use the configuration editor.
+</p>
+
+<div class="actions">
+<button id="customizeConfigBtn" type="button" class="secondary">
+  Customize labels and colors
+</button>
+</div>
+
+<iframe id="viewer" loading="lazy"></iframe>
+    <div class="actions">
+      <span class="muted">Il viewer si aggiorna automaticamente dopo insert/update/delete.</span>
+    </div>
+  </div>
+
+<div id="responsePanel" class="card" style="display:none;">
+  <div class="muted">Developer response</div>
+  <pre id="out"></pre>
+</div>
+
+<script>
+  
+  const qs = new URLSearchParams(window.location.search);
+  const DEBUG_MODE = qs.get("debug") === "1";
+  const APP_SLUG = qs.get("app") || "export";
+
+  function setMsg(el, msg, cls) {
+    el.className = cls || "muted";
+    el.textContent = msg;
+  }
+
+
+    async function apiCall_(mode, params = {}) {
+    let url = `/api/apps/${APP_SLUG}/${mode}`;
+
+    const qs = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => {
+      qs.set(k, String(v ?? ""));
+    });
+
+    const query = qs.toString();
+    if (query) url += "?" + query;
+
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      throw new Error(data.error || `HTTP ${resp.status}`);
+    }
+
+    return data;
+  }
+
+    function apiUrl_(mode) {
+    return `/api/apps/${APP_SLUG}/${mode}`;
+  }
+
+  async function apiCall_(mode, params = {}, method = "GET") {
+    let url = apiUrl_(mode);
+
+    const options = {
+      method,
+      headers: {}
+    };
+
+    if (method === "GET") {
+      const qs = new URLSearchParams();
+      Object.entries(params).forEach(([k, v]) => {
+        qs.set(k, String(v ?? ""));
+      });
+
+      const query = qs.toString();
+      if (query) url += "?" + query;
+    } else {
+      options.headers["Content-Type"] = "application/json";
+      options.body = JSON.stringify(params);
+    }
+
+    const resp = await fetch(url, options);
+    const data = await resp.json();
+
+    out.textContent = JSON.stringify(data, null, 2);
+
+    if (!resp.ok) {
+      throw new Error(data.error || `HTTP ${resp.status}`);
+    }
+
+    return data;
+  }
+
+  function viewerUrl_(cacheBust) {
+  const basePath = window.location.pathname.replace(/[^\/]*$/, "");
+  const u = new URL(basePath + "viewer.html", window.location.origin);
+  u.searchParams.set("app", APP_SLUG);
+  u.searchParams.set("limit", "50");
+  u.searchParams.set("embedded", "1");
+  if (cacheBust) u.searchParams.set("_", Date.now().toString());
+  return u.toString();
+}
+
+  const out = document.getElementById("out");
+const viewer = document.getElementById("viewer");
+
+const actionButtons = [
+  "insertBtn",
+  "getBtn",
+  "updateBtn",
+  "deleteBtn",
+  "pingBtn",
+  "schemaBtn"
+]
+  .map(id => document.getElementById(id))
+  .filter(Boolean);
+
+const formControls = Array.from(document.querySelectorAll("input, select, button"));
+
+function setBusy(isBusy, message = "") {
+  formControls.forEach(el => {
+    el.disabled = isBusy;
+  });
+
+  if (message) {
+    const insertStatus = document.getElementById("insertStatus");
+    const crudStatus = document.getElementById("crudStatus");
+
+    if (insertStatus) setMsg(insertStatus, message, "muted");
+    if (crudStatus) setMsg(crudStatus, message, "muted");
+  }
+}
+
+async function call_(mode, params = {}, needsKey = false) {
+  const method = needsKey ? "POST" : "GET";
+  return await apiCall_(mode, params, method);
+}
+
+    function loadViewer(cacheBust) {
+    viewer.src = viewerUrl_(cacheBust);
+  }
+
+  function refreshViewerSoon(delayMs = 700) {
+    setTimeout(() => loadViewer(true), delayMs);
+  }
+
+  document.getElementById("pingBtn").addEventListener("click", async () => {
+    try {
+      setMsg(document.getElementById("cfgStatus"), "Calling meta…");
+      const r = await call_("meta", {}, false);
+      setMsg(
+        document.getElementById("cfgStatus"),
+        r.ok ? "OK meta" : ("ERR: " + (r.error || "")),
+        r.ok ? "ok" : "err"
+      );
+      loadViewer(false);
+    } catch (e) {
+      setMsg(document.getElementById("cfgStatus"), "ERR: " + e.message, "err");
+    }
+  });
+
+  document.getElementById("schemaBtn").addEventListener("click", async () => {
+    try {
+      setMsg(document.getElementById("cfgStatus"), "Calling schema…");
+      const r = await call_("schema", {}, false);
+      setMsg(
+        document.getElementById("cfgStatus"),
+        r.ok ? "OK schema" : ("ERR: " + (r.error || "")),
+        r.ok ? "ok" : "err"
+      );
+    } catch (e) {
+      setMsg(document.getElementById("cfgStatus"), "ERR: " + e.message, "err");
+    }
+  });
+
+  document.getElementById("insertBtn").addEventListener("click", async () => {
+  const st = document.getElementById("insertStatus");
+  try {
+    setBusy(true, "Operation in progress. Please wait…");
+    setMsg(st, "Inserting…");
+
+    const payload = {
+        "data": document.getElementById("data").value.trim(),
+        "conto": document.getElementById("conto").value.trim(),
+        "descrizione": document.getElementById("descrizione").value.trim(),
+        "cliente/fornitore": document.getElementById("clientefornitore").value.trim(),
+        "entrate": document.getElementById("entrate").value.trim(),
+        "uscite": document.getElementById("uscite").value.trim(),
+        "saldo prog.vo": document.getElementById("saldo_progvo").value.trim()
+      };
+
+    const r = await call_("insert", payload, true);
+
+    if (r.ok) {
+      setMsg(st, `OK inserted id=${r.id}`, "ok");
+      refreshViewerSoon();
+    } else {
+      setMsg(st, "ERR: " + (r.error || "Unknown error"), "err");
+    }
+
+  } catch (e) {
+    setMsg(st, "ERR: " + e.message, "err");
+  } finally {
+    setTimeout(() => setBusy(false), 900);
+  }
+});
+
+  document.getElementById("getBtn").addEventListener("click", async () => {
+  const st = document.getElementById("crudStatus");
+  try {
+    setBusy(true, "Operation in progress. Please wait…");
+
+    const id = document.getElementById("crud_id").value.trim();
+    setMsg(st, "Loading record…");
+
+    const r = await call_("getById", { id }, true);
+
+    setMsg(
+      st,
+      r.ok ? `OK loaded id=${id}` : ("ERR: " + (r.error || "")),
+      r.ok ? "ok" : "err"
+    );
+
+    if (r.ok && r.record) {
+        document.getElementById("data").value = r.record["data"] || "";
+        document.getElementById("conto").value = r.record["conto"] || "";
+        document.getElementById("descrizione").value = r.record["descrizione"] || "";
+        document.getElementById("clientefornitore").value = r.record["cliente/fornitore"] || "";
+        document.getElementById("entrate").value = r.record["entrate"] || "";
+        document.getElementById("uscite").value = r.record["uscite"] || "";
+        document.getElementById("saldo_progvo").value = r.record["saldo prog.vo"] || "";
+    }
+  } catch (e) {
+    setMsg(st, "ERR: " + e.message, "err");
+  } finally {
+    setBusy(false);
+  }
+});
+
+  document.getElementById("updateBtn").addEventListener("click", async () => {
+  const st = document.getElementById("crudStatus");
+  try {
+    setBusy(true, "Operation in progress. Please wait…");
+
+    const id = document.getElementById("crud_id").value.trim();
+    setMsg(st, "Updating record…");
+
+    const payload = {
+        "data": document.getElementById("data").value.trim(),
+        "conto": document.getElementById("conto").value.trim(),
+        "descrizione": document.getElementById("descrizione").value.trim(),
+        "cliente/fornitore": document.getElementById("clientefornitore").value.trim(),
+        "entrate": document.getElementById("entrate").value.trim(),
+        "uscite": document.getElementById("uscite").value.trim(),
+        "saldo prog.vo": document.getElementById("saldo_progvo").value.trim()
+      };
+    payload.id = id;
+
+    const r = await call_("update", payload, true);
+
+    setMsg(
+      st,
+      r.ok ? `OK updated id=${id}` : ("ERR: " + (r.error || "")),
+      r.ok ? "ok" : "err"
+    );
+
+    if (r.ok) {
+      refreshViewerSoon();
+    }
+
+  } catch (e) {
+    setMsg(st, "ERR: " + e.message, "err");
+  } finally {
+    setTimeout(() => setBusy(false), 900);
+  }
+});
+
+  document.getElementById("customizeConfigBtn").addEventListener("click", () => {
+  window.location.href =
+    `review.html?autoload=1&returnApp=${encodeURIComponent(APP_SLUG)}`;
+});
+
+  document.getElementById("deleteBtn").addEventListener("click", async () => {
+  const st = document.getElementById("crudStatus");
+  try {
+    const id = document.getElementById("crud_id").value.trim();
+    if (!id) throw new Error("Missing id");
+    if (!confirm(`Delete id=${id}?`)) return;
+
+    setBusy(true, "Operation in progress. Please wait…");
+    setMsg(st, "Deleting record…");
+
+    const r = await call_("delete", { id }, true);
+
+    setMsg(
+      st,
+      r.ok ? `OK deleted id=${id}` : ("ERR: " + (r.error || "")),
+      r.ok ? "ok" : "err"
+    );
+
+    if (r.ok) {
+      refreshViewerSoon();
+    }
+
+  } catch (e) {
+    setMsg(st, "ERR: " + e.message, "err");
+  } finally {
+    setTimeout(() => setBusy(false), 900);
+  }
+});
+  
+  if (DEBUG_MODE) {
+  const debugPanel = document.getElementById("debugPanel");
+  const responsePanel = document.getElementById("responsePanel");
+
+  if (debugPanel) debugPanel.style.display = "block";
+  if (responsePanel) responsePanel.style.display = "block";
+}
+
+loadViewer(false);
+</script>
 
 </body>
 </html>
